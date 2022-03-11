@@ -19,7 +19,11 @@ const helmet = require("helmet");
 const runner = require("./test-runner");
 const database = require("./database");
 const { apiRoutes, fccTestingRoutes } = require("./routes");
-const { errorHandler, loggerDev, notFoundHandler } = require("./middlewares");
+const {
+  errorHandler,
+  loggerDev,
+  notFoundHandler,
+} = require("./app/middlewares");
 
 const app = express();
 
@@ -27,7 +31,6 @@ app.use(loggerDev);
 app.use(
   helmet({
     contentSecurityPolicy: {
-      // configure
       directives: {
         defaultSrc: ["'self'"],
         styleSrc: ["'self'"],

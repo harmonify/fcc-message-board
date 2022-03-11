@@ -20,18 +20,12 @@ const threadSchema = new Schema(
         ref: models.Reply,
       },
     ],
-    replycount: {
-      type: SchemaTypes.Number,
-      default: 0,
-    },
   },
   { timestamps }
 );
 
-// automatically update replycount when a reply is added
-threadSchema.pre("save", function (next) {
-  this.replycount = this.replies.length;
-  next();
+threadSchema.virtual("replycount").get(function () {
+  return this.replies.length;
 });
 
 const Thread = model(models.Thread, threadSchema);
