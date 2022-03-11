@@ -3,11 +3,11 @@
 const { Thread } = require("../models");
 
 class ThreadService {
-  async getThread(threadId) {
+  async findThread(threadId) {
     return await Thread.findById(threadId);
   }
 
-  async getThreadAndPopulate(threadId) {
+  async findAndPopulateThread(threadId) {
     return await Thread.findById(threadId).populate({
       path: "replies",
     });
