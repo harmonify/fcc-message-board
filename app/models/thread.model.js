@@ -20,6 +20,10 @@ const threadSchema = new Schema(
         ref: models.Reply,
       },
     ],
+    reported: {
+      type: SchemaTypes.Boolean,
+      default: false,
+    },
   },
   { timestamps }
 );

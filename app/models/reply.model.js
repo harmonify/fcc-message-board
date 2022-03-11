@@ -14,6 +14,10 @@ const replySchema = new Schema(
       type: SchemaTypes.String,
       required: [true, "Reply text is required"],
     },
+    reported: {
+      type: SchemaTypes.Boolean,
+      default: false,
+    },
   },
   { timestamps }
 );
