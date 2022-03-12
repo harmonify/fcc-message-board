@@ -1,11 +1,5 @@
 "use strict";
 
-const { ReplyService } = require("../services");
-
-class ReplyController {
-  constructor() {
-    this.replyService = new ReplyService();
-  }
-}
+class ReplyController {}
 
 module.exports = ReplyController;
