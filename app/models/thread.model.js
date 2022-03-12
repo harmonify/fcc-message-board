@@ -1,35 +1,58 @@
 "use strict";
 
 const { model, Schema, SchemaTypes } = require("mongoose");
-const { models, timestamps } = require("../config").mongooseConfig;
+const bcrypt = require("bcrypt");
+
+const { models, timestamps } = require("../../config").mongooseConfig;
+const { Board } = require("./board.model");
 
 const threadSchema = new Schema(
   {
-    board_id: {
-      type: SchemaTypes.ObjectId,
-      ref: models.Board,
-      required: [true, "Board id is required"],
-    },
     text: {
       type: SchemaTypes.String,
       required: [true, "Thread text is required"],
     },
+    reported: {
+      type: SchemaTypes.Boolean,
+      default: false,
+    },
+    delete_password: {
+      type: SchemaTypes.String,
+      required: [true, "Thread delete password is required"],
+    },
+    // parent reference
+    board: {
+      type: SchemaTypes.ObjectId,
+      ref: models.Board,
+      required: [true, "Board id is required"],
+    },
+    // child references
     replies: [
       {
         type: SchemaTypes.ObjectId,
         ref: models.Reply,
       },
     ],
-    reported: {
-      type: SchemaTypes.Boolean,
-      default: false,
-    },
   },
   { timestamps }
 );
 
 threadSchema.virtual("replycount").get(function () {
   return this.replies.length;
+});
+
+threadSchema.pre("save", async function (next) {
+  // add thread id to board's threads array when a thread is created
+  await Board.findByIdAndUpdate(
+    this.board_id,
+    { $push: { threads: this._id } },
+    { new: true }
+  );
+
+  // hash delete password
+  this.delete_password = await bcrypt.hash(this.delete_password, 10);
+
+  next();
 });
 
 /**
@@ -58,18 +81,6 @@ threadSchema.statics.mock = function ({
 };
 
 /**
- * Find by id and populate the referenced fields of the thread document.
- *
- * @param {SchemaTypes.ObjectId} threadId - Thread document _id field.
- * @return {Promise<Thread>} A promise that resolves to a Thread document.
- */
-threadSchema.statics.findByIdAndPopulate = async function (threadId) {
-  return await this.findById(threadId).populate({
-    path: "replies",
-  });
-};
-
-/**
  * Set the reported status of the thread to true.
  *
  * @param {SchemaTypes.ObjectId} threadId - Thread document _id field.
@@ -79,6 +90,15 @@ threadSchema.statics.reportThread = async function (threadId) {
   const thread = await this.findById(threadId);
   thread.reported = true;
   return await thread.save();
+};
+
+/**
+ * Populate the referenced fields of the thread document.
+ *
+ * @return {Promise<Thread>} A promise that resolves to a Thread document.
+ */
+threadSchema.methods.populateFields = async function () {
+  return await this.populate(["board", "replies"]);
 };
 
 const Thread = model(models.Thread, threadSchema);

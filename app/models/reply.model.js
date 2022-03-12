@@ -1,15 +1,13 @@
 "use strict";
 
 const { model, Schema, SchemaTypes } = require("mongoose");
-const { models, timestamps } = require("../config").mongooseConfig;
+const bcrypt = require("bcrypt");
+
+const { models, timestamps } = require("../../config").mongooseConfig;
+const { Thread } = require("./thread.model");
 
 const replySchema = new Schema(
   {
-    thread_id: {
-      type: SchemaTypes.ObjectId,
-      ref: models.Thread,
-      required: [true, "Thread id is required"],
-    },
     text: {
       type: SchemaTypes.String,
       required: [true, "Reply text is required"],
@@ -18,9 +16,33 @@ const replySchema = new Schema(
       type: SchemaTypes.Boolean,
       default: false,
     },
+    delete_password: {
+      type: SchemaTypes.String,
+      required: [true, "Reply delete password is required"],
+    },
+    // parent reference
+    thread: {
+      type: SchemaTypes.ObjectId,
+      ref: models.Thread,
+      required: [true, "Thread id is required"],
+    },
   },
   { timestamps }
 );
+
+replySchema.pre("save", async function (next) {
+  // add reply id to thread's replies array when a reply is created
+  await Thread.findByIdAndUpdate(
+    this.thread_id,
+    { $push: { replies: this._id } },
+    { new: true }
+  );
+
+  // hash delete password
+  this.delete_password = await bcrypt.hash(this.delete_password, 10);
+
+  next();
+});
 
 /**
  * Mock a reply document.
@@ -51,6 +73,15 @@ replySchema.statics.reportReply = async function (replyId) {
   reply.reported = true;
   return await reply.save();
 };
+
+/**
+ * Populate the referenced fields of the reply document.
+ * 
+ * @return {Promise<Reply>} A promise that resolves to a Reply document.
+ */
+replySchema.methods.populateFields = async function () {
+  await this.populate("thread");
+}
 
 const Reply = model(models.Reply, replySchema);
 
