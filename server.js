@@ -37,6 +37,7 @@ app.use(
         scriptSrc: ["'self'"],
       },
     },
+    referrerPolicy: { policy: "same-origin" },
   })
 );
 app.use("/public", express.static(process.cwd() + "/public"));
