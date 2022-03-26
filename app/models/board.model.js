@@ -22,6 +22,15 @@ const boardSchema = new Schema(
   { timestamps }
 );
 
+boardSchema.virtual("threadsCount").get(function () {
+  return this.threads.length;
+});
+
+boardSchema.pre("remove", async function (board) {
+  // delete all threads associated with this board
+  await model(models.Thread).deleteMany({ board: board._id });
+});
+
 /**
  * Mock a board document.
  *
@@ -34,7 +43,7 @@ const boardSchema = new Schema(
  */
 boardSchema.statics.mock = function ({ name, threads } = {}) {
   return {
-    name: name || "Board Mock",
+    name: name || "mocked-board",
     threads: threads || [],
   };
 };
