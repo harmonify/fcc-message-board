@@ -7,8 +7,11 @@ module.exports = function (err, req, res, next) {
       : console.error(`Bad request: ${err.name}("${err.message}")`);
   }
   if (err.statusCode && err.statusCode !== 500) {
-    res.status(err.statusCode).json({ error: err.message });
+    // freeCodeCamp's tests expect 200 status code
+    res.send(err.message);
+    
+    // res.status(err.statusCode).send(err.message);
     return;
   }
-  res.status(500).json({ error: "Internal server error" });
+  res.status(500).send("Internal server error");
 };
