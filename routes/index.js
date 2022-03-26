@@ -1,7 +1,7 @@
 "use strict";
 
-const apiRoutes = require("./api.route");
-const fccTestingRoutes = require("./fcctesting.route");
+const apiRoutes = require("./api");
+const fccTestingRoutes = require("./fcctesting");
 
 module.exports = {
   apiRoutes,
